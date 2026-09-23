@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test") // Activates application-test.yml
+@ActiveProfiles("h2mem-test") // Activates application-h2mem-test.yml
 class ClientServiceImplTest {
     /*  Pure Unit Test.
         Unit Test for ClientServiceImpl using Mock & InjectMocks.
@@ -48,7 +48,7 @@ class ClientServiceImplTest {
     @Test
     void testActiveProfile() {
         String[] env = environment.getActiveProfiles();
-        assertThat(Arrays.toString(env)).isEqualTo("[test]");
+        assertThat(Arrays.toString(env)).isEqualTo("[h2mem-test]");
     }
 
     @Test

@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: client-resource-access-api
+
+  datasource:
+    url: ${ORACLE_DB_URL:jdbc:oracle:thin:@10.0.0.252:1521:free}
+    username: ${ORACLE_DB_USER:system}
+    password: ${ORACLE_DB_PSWD:Sankui2026}
+    driver-class-name: ${ORACLE_DB_DRIVER:oracle.jdbc.OracleDriver}
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

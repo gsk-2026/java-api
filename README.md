@@ -171,7 +171,7 @@ The root project incorporates a multi-tier **Jenkinsfile** configuration script.
 3. Automatically spins up mock database isolation environments via Testcontainers.
 4. Packages and builds your production OCI Docker container bundles.
 5. The CI/CD pipeline executes all unit, integration, E2E, and performance tests.
-5. Change in git branch repo will trigger unit testing
-6. Change in git main repo will trigger end-to-end and performance testing too
+5. Code changes in the Git features will initiate the unit tests only.
+6. Code changes in the Git main will trigger integration, end-to-end, and performance tests too
 
 ---

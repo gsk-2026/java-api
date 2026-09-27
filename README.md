@@ -32,7 +32,7 @@ java-api/ (Standalone Workspace Root)
 │   ├── mvnw / mvnw.cmd                # Cross-platform Maven wrapper binaries
 │   ├── pom.xml                        # Inherits directly from spring-boot-starter-parent
 │   │
-│   └── 🛠️ Local Automation Scripts:
+│   └── Local Automation Scripts:
 │       ├── build_clean_compile.bat    # Windows: Compiles source and processors
 │       ├── build_clean_compile.sh     # Unix/Bash: Compiles source and processors
 │       ├── build_clean_package.bat    # Windows: Packages code into an executable .jar
@@ -51,7 +51,7 @@ java-api/ (Standalone Workspace Root)
 
 ## Required Installation Verification
 
-Following is list of required installation to run the testing for `client-resource-access-api`:
+Below is the list of minimum installation requirements to run tests for the `client-resource-access-api`:
 
 ### 1. Java
 
@@ -76,6 +76,7 @@ docker --version                         # required to run ClientResourceAccessA
 
 ```bash
 lsnrctl status                           # The DB could also be a docker container, not a native service.  Required to run ClientResourceAccessApiOracleE2E
+                                         # Please not ro set 'ddl-auto: create' for the first run, which will automatically create db schema. then reset back to 'ddl-auto: update'
 ```
 
 ### 5. Jenjins
@@ -87,12 +88,11 @@ sc query Jenkins                        # Jenkins could also be a docker contain
 ---
 
 
-## Comprehensive Quality Testing Suites - Manually triger the testing with samples
+## Steps to Manually Execute Quality Testing Suites
 
-All terminal test validations must be executed from inside the target service directory (`./client-resource-access-api`):
+The examples below show how to manually run the full quality testing workflow:
 
 ### 1. Clone the Codebase
-Open your terminal workspace and execute the git clone operation:
 ```bash
 git clone https://github.com/gsk-2026/java-api java-api-local
 cd java-api-local/client-resource-access-api
@@ -101,26 +101,26 @@ cd java-api-local/client-resource-access-api
 ### 2. Run all/specific config unit testing
 ```bash
 # Windows (Git Bash/ CMD / PowerShell)
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.config.*Test"
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.config.SecurityConfigTest"         # sample
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.config.*Test"                      # all testing
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.config.SecurityConfigTest"         # specific testing
 ```
 
 ### 3. Run all/specific controller unit testing
 ```bash
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.controller.*Test"
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.controller.ClientControllerTest"   # sample
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.controller.*Test"                  # all testing
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.controller.ClientControllerTest"   # specific testing
 ```
 
 ### 4. Run all/specific repository unit testing
 ```bash
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.repository.*Test"
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.repository.ClientRepositoryTest"   # sample
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.repository.*Test"                  # all testing
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.repository.ClientRepositoryTest"   # specific testing
 ```
 
 ### 5. Run all/specific service unit testing
 ```bash
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.service.*Test"
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.service.ClientServiceImplTest"   # sample
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.service.*Test"                     # all testing
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.service.ClientServiceImplTest"     # specific testing
 ```
 
 ### 6. Run all (controller, repository, service) unit testing
@@ -130,19 +130,19 @@ mvn clean test
 
 ### 7. Run all/specific integration testing (IT)
 ```bash
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.*IT"
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.ClientResourceAccessIT"   # sample
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.*IT"                              # all testing
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.ClientResourceAccessIT"           # specific testing
 ```
 
 ### 8. Run all/specific End-to-End (E2E) testing
 ```bash
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.*E2E"
-mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.ClientResourceAccessApiDockerE2E"   # sample
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.*E2E"                              # all testing
+mvn clean test -Dtest="com.dreamtech.clientresourceaccessapi.ClientResourceAccessApiDockerE2E"  # specific testing
 ```
 
 ### 9. Run performance testing
 ```bash
-mvn clean package    # 1. Bpackage the compiled code into a JAR file
+mvn clean package        # 1. Backage the compiled code into a JAR file
 java -Dspring.profiles.active=qatest -jar target/client-resource-access-api-0.0.1-SNAPSHOT.jar    # 2. launches the API package
 mvn gatling:test -Dgatling.simulationClass=com.dreamtech.clientresourceaccessapi.ClientResourceAccessApiE2ELoadScenario      # 3. trigger the peformance tetsing
 ### The performance tets result will be presented in a file - refer the at the end of the logs
@@ -155,23 +155,20 @@ mvn clean verify -Pqatest
 
 ### 11. Launch the API package
 ```bash
-mvn clean package    # 1. Package the compiled code into a JAR file
+mvn clean package       # 1. Package the compiled code into a JAR file
 java -Dspring.profiles.active=qatest -jar target/client-resource-access-api-0.0.1-SNAPSHOT.jar    # 2. launches the API package
-http://localhost:8181/swagger-ui/index.html         # 3. Notes API Documentation
+http://localhost:8181/swagger-ui/index.html         # 3. Access the Swagger UI by navigating to this URL in your web browser
 ```
 
 ---
    
 
-##  CI/CD Automation Engine - The CI/CD pipeline triggers unit, integration, end-to-end, and performance tests
+##  CI/CD Automation Engine
 
-The root project incorporates a multi-tier **Jenkinsfile** configuration script. Every pull request or branch commit pushed to your remote repository activates a central automation pipeline which:
-1. Validates structural workspace integrity.
-2. Compiles your underlying dependencies.
-3. Automatically spins up mock database isolation environments via Testcontainers.
-4. Packages and builds your production OCI Docker container bundles.
-5. The CI/CD pipeline executes all unit, integration, E2E, and performance tests.
-5. Code changes in the Git features will initiate the unit tests only.
-6. Code changes in the Git main will trigger integration, end-to-end, and performance tests too
+1. Integrate Jenkins with GitHub
+2. The root project incorporates a multi-tier Jenkinsfile configuration script
+3. The CI/CD pipeline executes all unit, integration, E2E, and performance tests.
+4. Every branch commit pushed to repository features will initiate the unit tests only.
+5. Every branch commit pushed to repository main will trigger integration, end-to-end, and performance tests.
 
 ---

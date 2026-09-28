@@ -79,10 +79,10 @@ lsnrctl status                           # The DB could also be a docker contain
                                          # Please not ro set 'ddl-auto: create' for the first run, which will automatically create db schema. then reset back to 'ddl-auto: update'
 ```
 
-### 5. Jenjins
+### 5. Jenkins
 
 ```bash
-sc query Jenkins                        # Jenkins could also be a docker container, or a browser application.  Required for CI/CD pipeline
+sc query Jenkins                         # Jenkins could also be a docker container, or a browser application.  Required for CI/CD pipeline
 ```
 
 ---
@@ -170,5 +170,6 @@ http://localhost:8181/swagger-ui/index.html         # 3. Access the Swagger UI b
 3. The CI/CD pipeline executes all unit, integration, E2E, and performance tests.
 4. Every branch commit pushed to repository features will initiate the unit tests only.
 5. Every branch commit pushed to repository main will trigger integration, end-to-end, and performance tests.
+6. Jenkins pipeline can also be triggered manually from Jenkins (Build with Parameters)
 
 ---

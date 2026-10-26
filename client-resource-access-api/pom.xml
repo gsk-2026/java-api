@@ -14,7 +14,7 @@
     <artifactId>client-resource-access-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Client Resource Access API - Java</name>
-    <description>REST API for client resource access management</description>
+    <description>REST API for Client Resource Access Management</description>
 
     <url/>
     <licenses>

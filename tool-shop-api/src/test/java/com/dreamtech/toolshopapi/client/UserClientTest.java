@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -274,7 +275,7 @@ public class UserClientTest {
     @Test
     @DisplayName("UserClient : retrieve all users : Success 200")
     public void testUserGetAllUsersSuccess200() {
-        int pageNum = 1;
+        int pageNum = new Random().nextInt(10) - 5;
         userClient.getAllUsers(pageNum).then()
                 .log().all()
                 .statusCode(200)
@@ -291,7 +292,7 @@ public class UserClientTest {
     @DisplayName("UserClient : retrieve all users : Unauthorized 401 - invalid token")
     public void testUserGetAllUsersUnauthorized401_token() {
         String token = "invalid_token";
-        int pageNum = 1;
+        int pageNum = new Random().nextInt(10) - 5;
         userClient.getAllUsers(pageNum, token).then()
                 .log().all()
                 .statusCode(401)
@@ -305,7 +306,7 @@ public class UserClientTest {
                 .statusCode(200)
                 .body("message", equalTo("Successfully logged out"));
 
-        int pageNum = 1;
+        int pageNum = new Random().nextInt(10) - 5;
         userClient.getAllUsers(pageNum).then()
                 .log().all()
                 .statusCode(401)
@@ -371,7 +372,7 @@ public class UserClientTest {
     @DisplayName("UserClient : retrieve specific users matching the search query : Success")
     public void testUserSearchUserSuccess200() {
         String q = "XYZ";
-        int pageNum = 10;
+        int pageNum = new Random().nextInt(10) - 5;
         userClient.searchUser(q, pageNum).then()
                 .log().all()
                 .statusCode(200)
@@ -392,7 +393,7 @@ public class UserClientTest {
                 .body("message", equalTo("Successfully logged out"));
 
         String q = "XYZ";
-        int pageNum = 10;
+        int pageNum = new Random().nextInt(10) - 5;
         userClient.searchUser(q, pageNum).then()
                 .log().all()
                 .statusCode(401)
@@ -404,7 +405,7 @@ public class UserClientTest {
     public void testUserSearchUserUnauthorized401_token() {
         String token = "invalid_token";
         String q = "XYZ";
-        int pageNum = 10;
+        int pageNum = new Random().nextInt(10) - 5;
         userClient.searchUser(q, pageNum, token).then()
                 .log().all()
                 .statusCode(401)
@@ -546,7 +547,7 @@ public class UserClientTest {
 
 
     @Test
-    @DisplayName("UserClient : logout - invalidate the token : Success 200")
+    @DisplayName("UserClient : logout : Success 200")
     public void testUserLogoutSuccess200() {
         userClient.logout().then()
                 .log().all()
@@ -557,7 +558,7 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : logout - invalidate the token : Unauthorized 401 - post logout")
+    @DisplayName("UserClient : logout : Unauthorized 401 - post logout")
     public void testUserLogoutUnauthorized401_logout() {
         userClient.logout().then()
                 //.log().all()
@@ -573,7 +574,7 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : logout - invalidate the token : Unauthorized 401 - invlid token")
+    @DisplayName("UserClient : logout : Unauthorized 401 - invalid token")
     public void testUserLogoutUnauthorized401_token() {
         String token = "invalid_token";
 

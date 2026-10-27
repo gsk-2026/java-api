@@ -50,7 +50,7 @@ public class UserClientTest {
        }
 
        if (response.statusCode() == 200) {
-           response = userClient.getInfoByMe();
+           response = userClient.getInfoByMe(null);
            response.then()
                    //.log().all()
                    .statusCode(200);
@@ -59,7 +59,7 @@ public class UserClientTest {
 
 
     @Test
-    @DisplayName("UserClient : store new user : Success")
+    @DisplayName("UserClient : store new user : Success 201")
     public void testUserRegistrationSuccess201() {
         String userEmail = "user.register.email." + UUID.randomUUID().toString().substring(0, 8) + "@toolshop.com";
         UserRegisterRequest request = UserRegisterRequest.builder()
@@ -76,9 +76,7 @@ public class UserClientTest {
                 .password("Secret-Password")
                 .build();
 
-        Response response = userClient.register(request);
-
-        response.then()
+        userClient.register(request).then()
                 .log().all()
                 .statusCode(201)
                 .body("first_name", equalTo(request.first_name()))
@@ -99,16 +97,64 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : login customer : Success")
+    @DisplayName("UserClient : store new user : Conflict 409")
+    public void testUserRegistrationConflict409() {
+        String userEmail = "user.register.email." + UUID.randomUUID().toString().substring(0, 8) + "@toolshop.com";
+        UserRegisterRequest request = UserRegisterRequest.builder()
+                .first_name("Jane")
+                .last_name("Doe")
+                .dob("1992-05-15")
+                .address("456 Test Ave")
+                .city("Chicago")
+                .state("IL")
+                .country("US")
+                .postcode("67890")
+                .phone("888-123-4567")
+                .email(userEmail)
+                .password("Secret-Password")
+                .build();
+
+        userClient.register(request).then()
+                .log().all()
+                .statusCode(201);
+
+        userClient.register(request).then()
+                .log().all()
+                .statusCode(409)
+                .body("email[0]", equalTo("A customer with this email address already exists."));
+    }
+
+    @Test
+    @DisplayName("UserClient : store new user : Unprocessable Content 422")
+    public void testUserRegistrationUnprocessable422() {
+        UserRegisterRequest request = UserRegisterRequest.builder().build();
+
+        userClient.register(request).then()
+                .log().all()
+                .statusCode(422)
+                .body("first_name[0]", equalTo("The first name field is required."))
+                .body("last_name[0]", equalTo("The last name field is required."))
+                .body("address[0]", equalTo("The address field is required."))
+                .body("city[0]", equalTo("The city field is required."))
+                .body("state[0]", equalTo("The state field must be a string."))
+                .body("country[0]", equalTo("The country field is required."))
+                .body("postcode[0]", equalTo("The postcode field must be a string."))
+                .body("phone[0]", equalTo("The phone field must be a string."))
+                .body("dob[0]", equalTo("The dob field is required."))
+                .body("email[0]", equalTo("The email field is required."))
+                .body("password[0]", equalTo("The password field is required."));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : login customer : Success 200")
     public void testUserLoginSuccess200() {
         UserLoginRequest request = UserLoginRequest.builder()
                 .email("customer@practicesoftwaretesting.com")
                 .password("welcome01")
                 .build();
 
-        Response response = userClient.login(request);
-
-        response.then()
+        userClient.login(request).then()
                 .log().all()
                 .statusCode(200)
                 .body("access_token", equalTo(userClient.getBearerToken()))
@@ -119,11 +165,70 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : retrieve current customer info : Success")
-    public void testUserGetInfoByMeSuccess200() {
-        Response response = userClient.getInfoByMe();
+    @DisplayName("UserClient : login customer : Success 200 - double login")
+    public void testUserLoginSuccess200_login() {
+        UserLoginRequest request = UserLoginRequest.builder()
+                .email(userClient.getEmail())
+                .password(userClient.getPassword())
+                .build();
 
-        response.then()
+        userClient.login(request).then()
+                .log().all()
+                .statusCode(200)
+                .body("access_token", equalTo(userClient.getBearerToken()))
+                .body("token_type", notNullValue())
+                .body("expires_in", greaterThan(0))
+                .extract()
+                .as(UserLoginResponse.class);
+
+        userClient.login(request).then()
+                .log().all()
+                .statusCode(200)
+                .body("access_token", equalTo(userClient.getBearerToken()))
+                .body("token_type", notNullValue())
+                .body("expires_in", greaterThan(0))
+                .extract()
+                .as(UserLoginResponse.class);
+    }
+
+    @Test
+    @DisplayName("UserClient : login customer : Success 200 - post logout")
+    public void testUserDoubleLoginSuccess200_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
+
+        UserLoginRequest request = UserLoginRequest.builder()
+                .email(userClient.getEmail())
+                .password(userClient.getPassword())
+                .build();
+
+        userClient.login(request).then()
+                .log().all()
+                .statusCode(200)
+                .body("access_token", equalTo(userClient.getBearerToken()))
+                .body("token_type", notNullValue())
+                .body("expires_in", greaterThan(0))
+                .extract()
+                .as(UserLoginResponse.class);
+    }
+
+    @Test
+    @DisplayName("UserClient : login customer : Unauthorized 401")
+    public void testUserLoginUnauthorized401() {
+        UserLoginRequest request = UserLoginRequest.builder().build();
+
+        userClient.login(request).then()
+                .log().all()
+                .statusCode(401)
+                .body("error", equalTo("Unauthorized"));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : retrieve current customer info : Success 200")
+    public void testUserGetInfoByMeSuccess200() {
+       userClient.getInfoByMe().then()
                 .log().all()
                 .statusCode(200)
                 .body("id", equalTo(userClient.getUserId()))
@@ -143,11 +248,34 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : retrieve all users : Success")
+    @DisplayName("UserClient : retrieve current customer info : Unauthorized 401 - invalid token")
+    public void testUserGetInfoByMeUnauthorized401_token() {
+        String token = "invalid_token";
+        userClient.getInfoByMe(token).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+    @Test
+    @DisplayName("UserClient : retrieve current customer info : Unauthorized 401 - post logout")
+    public void testUserGetInfoByMeUnauthorized401_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
+
+         userClient.getInfoByMe().then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : retrieve all users : Success 200")
     public void testUserGetAllUsersSuccess200() {
         int pageNum = 1;
-        Response response = userClient.getAllUsers(pageNum);
-        response.then()
+        userClient.getAllUsers(pageNum).then()
                 .log().all()
                 .statusCode(200)
                 .body("current_page", equalTo(pageNum > 0 ? pageNum : 1))
@@ -160,11 +288,35 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : retrieve specific user : Success")
-    public void testUserGetInfoByIdSuccess200() {
-        Response getResponse = userClient.getInfoById();
+    @DisplayName("UserClient : retrieve all users : Unauthorized 401 - invalid token")
+    public void testUserGetAllUsersUnauthorized401_token() {
+        String token = "invalid_token";
+        int pageNum = 1;
+        userClient.getAllUsers(pageNum, token).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
 
-        getResponse.then()
+    @Test
+    @DisplayName("UserClient : retrieve all users : Unauthorized 401 - post logout")
+    public void testUserGetAllUsersUnauthorized401_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
+
+        int pageNum = 1;
+        userClient.getAllUsers(pageNum).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : retrieve specific user : Success 200")
+    public void testUserGetInfoByIdSuccess200() {
+        userClient.getInfoById().then()
                 .log().all()
                 .statusCode(200)
                 .body("id", equalTo(userClient.getUserId()))
@@ -182,13 +334,45 @@ public class UserClientTest {
     }
 
     @Test
+    @DisplayName("UserClient : retrieve specific user : Unauthorized 401 - post logout")
+    public void testUserGetInfoByIdUnauthorized401_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
+
+        userClient.getInfoById().then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+    @Test
+    @DisplayName("UserClient : retrieve specific user : Unauthorized 401 - invalid token")
+    public void testUserGetInfoByIdUnauthorized401_token() {
+        String token = "invalid_token";
+        userClient.getInfoById(token).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+    @Test
+    @DisplayName("UserClient : retrieve specific user : Not Found 404")
+    public void testUserGetInfoByIdNotFound404() {
+        int id = 999888777;
+        userClient.getInfoById(id).then()
+                .log().all()
+                .statusCode(404)
+                .body("message", equalTo("Requested item not found"));
+    }
+
+
+    @Test
     @DisplayName("UserClient : retrieve specific users matching the search query : Success")
     public void testUserSearchUserSuccess200() {
         String q = "XYZ";
         int pageNum = 10;
-        Response response = userClient.searchUser(q, pageNum);
-
-        response.then()
+        userClient.searchUser(q, pageNum).then()
                 .log().all()
                 .statusCode(200)
                 .body("current_page", equalTo(pageNum > 0 ? pageNum : 1))
@@ -201,10 +385,37 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : update specific user : Success")
+    @DisplayName("UserClient : retrieve specific users matching the search query : Unauthorized 401 - post logout")
+    public void testUserSearchUserUnauthorized401_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
+
+        String q = "XYZ";
+        int pageNum = 10;
+        userClient.searchUser(q, pageNum).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+    @Test
+    @DisplayName("UserClient : retrieve specific users matching the search query : Unauthorized 401 - invalid token")
+    public void testUserSearchUserUnauthorized401_token() {
+        String token = "invalid_token";
+        String q = "XYZ";
+        int pageNum = 10;
+        userClient.searchUser(q, pageNum, token).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : update specific user : Success 200")
     public void testUserUpdateByIdSuccess200() {
         String prefix = UUID.randomUUID().toString().substring(0, 8) + "-";
-
         UserUpdateRequest request = UserUpdateRequest.builder()
                 .first_name(prefix + "John")
                 .last_name(prefix + "Doe")
@@ -219,9 +430,7 @@ public class UserClientTest {
                 .password(userClient.getPassword())
                 .build();
 
-        Response response = userClient.updateById(request);
-
-        response.then()
+        userClient.updateById(request).then()
                 .log().all()
                 .statusCode(200)
                 .body("success", equalTo(true))
@@ -230,11 +439,79 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : retrieve a refreshed token : Success")
-    public void testUserGetTokenInfoSuccess200() {
-        Response meResponse = userClient.getTokenInfo();
+    @DisplayName("UserClient : update specific user : Unauthorized 401 - post logout")
+    public void testUserUpdateByIdUnauthorized401_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
 
-        meResponse.then()
+        String prefix = UUID.randomUUID().toString().substring(0, 8) + "-";
+        UserUpdateRequest request = UserUpdateRequest.builder()
+                .first_name(prefix + "John")
+                .last_name(prefix + "Doe")
+                .dob("2000-01-01")
+                .address(prefix + "Street 1")
+                .city(prefix + "City")
+                .state(prefix + "State")
+                .country(prefix + "Country")
+                .postcode("12345")
+                .phone("0-" + "123456789")
+                .email(userClient.getEmail())
+                .password(userClient.getPassword())
+                .build();
+
+        userClient.updateById(request).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized")) ;
+    }
+
+    @Test
+    @DisplayName("UserClient : update specific user : Unauthorized 401 - invalid token")
+    public void testUserUpdateByIdUnauthorized401_token() {
+        String token = "invalid_token";
+        String prefix = UUID.randomUUID().toString().substring(0, 8) + "-";
+        UserUpdateRequest request = UserUpdateRequest.builder()
+                .first_name(prefix + "John")
+                .last_name(prefix + "Doe")
+                .dob("2000-01-01")
+                .address(prefix + "Street 1")
+                .city(prefix + "City")
+                .state(prefix + "State")
+                .country(prefix + "Country")
+                .postcode("12345")
+                .phone("0-" + "123456789")
+                .email(userClient.getEmail())
+                .password(userClient.getPassword())
+                .build();
+
+        userClient.updateById(request, token).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized")) ;
+    }
+
+    @Test
+    @DisplayName("UserClient : update specific user : Unprocessable Content 422")
+    public void testUserUpdateByIdUnprocessable422() {
+        UserUpdateRequest request = UserUpdateRequest.builder().build();
+
+        userClient.updateById(request).then()
+                .log().all()
+                .statusCode(422)
+                .body("first_name[0]", equalTo("The first name field is required."))
+                .body("last_name[0]", equalTo("The last name field is required."))
+                .body("address[0]", equalTo("The address field is required."))
+                .body("city[0]", equalTo("The city field is required."))
+                .body("country[0]", equalTo("The country field is required."))
+                .body("email[0]", equalTo("The email field is required."));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : retrieve a refreshed token : Success 200")
+    public void testUserGetRefreshedTokenSuccess200() {
+        userClient.getRefreshedToken().then()
                 .log().all()
                 .statusCode(200)
                 .body("access_token", equalTo(userClient.getBearerToken()))
@@ -245,16 +522,65 @@ public class UserClientTest {
     }
 
     @Test
-    @DisplayName("UserClient : logout - invalidate the token : Success")
-    public void testUserLogoutSuccess200() {
-        Response meResponse = userClient.logout();
+    @DisplayName("UserClient : retrieve a refreshed token : Unauthorized 401 - post logout")
+    public void testUserGetRefreshedTokenUnauthorized401_logout() {
+        userClient.logout().then()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"));
 
-        meResponse.then()
+        userClient.getRefreshedToken().then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Token is not valid"));
+    }
+
+    @Test
+    @DisplayName("UserClient : retrieve a refreshed token : Server Error 500 - invalid token")
+    public void testUserGetRefreshedTokenServerError500_token() {
+        String token = "invalid_token";
+        userClient.getRefreshedToken(token).then()
+                .log().all()
+                .statusCode(500)
+                .body("message", equalTo("Server Error"));
+    }
+
+
+    @Test
+    @DisplayName("UserClient : logout - invalidate the token : Success 200")
+    public void testUserLogoutSuccess200() {
+        userClient.logout().then()
                 .log().all()
                 .statusCode(200)
                 .body("message", equalTo("Successfully logged out"))
                 .extract()
                 .as(UserLogoutResponse.class);
+    }
+
+    @Test
+    @DisplayName("UserClient : logout - invalidate the token : Unauthorized 401 - post logout")
+    public void testUserLogoutUnauthorized401_logout() {
+        userClient.logout().then()
+                //.log().all()
+                .statusCode(200)
+                .body("message", equalTo("Successfully logged out"))
+                .extract()
+                .as(UserLogoutResponse.class);
+
+        userClient.logout().then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
+    }
+
+    @Test
+    @DisplayName("UserClient : logout - invalidate the token : Unauthorized 401 - invlid token")
+    public void testUserLogoutUnauthorized401_token() {
+        String token = "invalid_token";
+
+        userClient.logout(token).then()
+                .log().all()
+                .statusCode(401)
+                .body("message", equalTo("Unauthorized"));
     }
 
 }

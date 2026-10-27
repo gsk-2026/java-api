@@ -6,6 +6,7 @@ import io.restassured.response.Response;
 import lombok.Getter;
 
 import java.util.UUID;
+
 import static io.restassured.RestAssured.given;
 
 
@@ -13,7 +14,12 @@ import static io.restassured.RestAssured.given;
 public class UserClient extends BaseClient {
 
     public Response register(UserRegisterRequest request) {
-        if (request != null) {
+        Response response = given()
+                .body(request)
+                .when()
+                .post("/users/register");
+
+        if (response.statusCode() == 201) {
             first_name = request.first_name();
             last_name = request.last_name();
             dob = request.dob();
@@ -25,14 +31,6 @@ public class UserClient extends BaseClient {
             phone = request.phone();
             email = request.email();
             password = request.password();
-        }
-
-        Response response = given()
-                .body(request)
-                .when()
-                .post("/users/register");
-
-        if (response.statusCode() == 201) {
             created_at = response.jsonPath().getString("created_at");
             userId = response.jsonPath().getInt("id");
         }
@@ -58,51 +56,107 @@ public class UserClient extends BaseClient {
     }
 
     public Response getInfoByMe() {
+        return getInfoByMe(null);
+    }
+
+    public Response getRefreshedToken() {
+        return getRefreshedToken(null);
+    }
+
+    public Response getAllUsers(int pageNumber) {
+        return getAllUsers(pageNumber, null);
+    }
+
+    public Response getInfoById() {
+        return getInfoById(0, null);
+    }
+
+    public Response searchUser(String query, int pageNumber) {
+        return searchUser(query, pageNumber, null);
+    }
+
+    public Response updateById(UserUpdateRequest request) {
+        return updateById(request, null);
+    }
+
+    public Response logout() {
+        return logout(null);
+    }
+
+
+    /******
+     *  P R O T E C T E D
+     *****/
+
+    protected Response getInfoByMe(String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+
         return given()
-                .header("Authorization", "Bearer " + bearerToken)
+                .header("Authorization", "Bearer " + strToken)
                 .when()
                 .get("/users/me");
     }
 
-    public Response getTokenInfo() {
+    protected Response getRefreshedToken(String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+
         Response response = given()
-                .header("Authorization", "Bearer " + bearerToken)
+                .header("Authorization", "Bearer " + strToken)
                 .when()
                 .get("/users/refresh");
 
-        bearerToken = response.jsonPath().getString("access_token");
+        if (response.statusCode() == 200) {
+            bearerToken = response.jsonPath().getString("access_token");
+        }
 
         return response;
     }
 
-    public Response getAllUsers(int pageNumber) {
+    protected Response getAllUsers(int pageNumber, String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+
         return given()
-                .header("Authorization", "Bearer " + bearerToken)
+                .header("Authorization", "Bearer " + strToken)
                 .pathParam("pageNumber", pageNumber)
                 .when()
                 .get("/users?page={pageNumber}");
     }
 
-    public Response getInfoById() {
+    protected Response getInfoById(Integer id) {
+        return getInfoById(id, null);
+    }
+
+    protected Response getInfoById(String token) {
+        return getInfoById(0, token);
+    }
+
+    protected Response getInfoById(Integer id, String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+        Integer theId = (id == null || id <= 0) ? userId : id;
+
         return given()
-                .header("Authorization", "Bearer " + bearerToken)
-                .pathParam("userId", userId)
+                .header("Authorization", "Bearer " + strToken)
+                .pathParam("userId", theId)
                 .when()
                 .get("/users/{userId}");
     }
 
-    public Response searchUser(String query, int pageNumber) {
+    protected Response searchUser(String query, int pageNumber, String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+
         return given()
-                .header("Authorization", "Bearer " + bearerToken)
+                .header("Authorization", "Bearer " + strToken)
                 .pathParam("query", query)
                 .pathParam("pageNumber", pageNumber)
                 .when()
                 .get("/users?q={query}&page={pageNumber}");
     }
 
-    public Response updateById(UserUpdateRequest request) {
+    protected Response updateById(UserUpdateRequest request, String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+
         Response response = given()
-                .header("Authorization", "Bearer " + bearerToken)
+                .header("Authorization", "Bearer " + strToken)
                 .pathParam("userId", userId)
                 .body(request)
                 .when()
@@ -147,17 +201,20 @@ public class UserClient extends BaseClient {
         return response;
     }
 
-    public Response logout() {
+    protected Response logout(String token) {
+        String strToken = (token == null || token.trim().isEmpty()) ? bearerToken : token;
+
         return given()
-                .header("Authorization", "Bearer " + bearerToken)
+                .header("Authorization", "Bearer " + strToken)
                 .when()
                 .get("/users/logout");
     }
 
 
     /******
-     P R I V A T E
+     *  P R I V A T E
      ******/
+
     private String first_name = "John";
     private String last_name = "Doe";
     private String dob = "1970-01-01";

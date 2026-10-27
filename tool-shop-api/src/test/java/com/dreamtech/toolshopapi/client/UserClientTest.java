@@ -225,6 +225,20 @@ public class UserClientTest {
                 .body("error", equalTo("Unauthorized"));
     }
 
+    @Test
+    @DisplayName("UserClient : login customer : Unauthorized 401 - invalid email/pswd")
+    public void testUserLoginUnauthorized401_email() {
+        UserLoginRequest request = UserLoginRequest.builder()
+                .email("invalid.email.com")
+                .password("invalid_pswd")
+                .build();
+
+        userClient.login(request).then()
+                .log().all()
+                .statusCode(401)
+                .body("error", equalTo("Unauthorized"));
+    }
+
 
     @Test
     @DisplayName("UserClient : retrieve current customer info : Success 200")

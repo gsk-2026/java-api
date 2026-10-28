@@ -4,6 +4,7 @@ import com.dreamtech.toolshopapi.model.*;
 import io.restassured.response.Response;
 import lombok.Getter;
 
+import java.util.Collections;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -13,28 +14,53 @@ import static io.restassured.RestAssured.given;
 public class InvoiceClient extends BaseClient {
 
     public InvoiceClient(UserRegisterRequest userRegisterRequest) {
-        String step = "";
-
         Response response = userClient.register(userRegisterRequest);
-        if (response.statusCode() == 201) step = "User_Register";
-
-        if (step.equalsIgnoreCase("User_Register")) {
-            UserLoginRequest loginRequest = UserLoginRequest.builder()
-                .email(userClient.getEmail())
-                .password(userClient.getPassword())
-                .build();
-
-            response = userClient.login(loginRequest);
-            if (response.statusCode() == 200) step = "User_Login";
+        if (response.statusCode() != 201) {
+            throw new IllegalArgumentException("InvoiceClient constructor failed when userClient register");
         }
 
-        if (step.equalsIgnoreCase("User_Login")) {
-            response = userClient.getInfoByMe();
-            if (response.statusCode() == 200) step = "User_Authorize";
+        UserLoginRequest loginRequest = UserLoginRequest.builder()
+            .email(userClient.getEmail())
+            .password(userClient.getPassword())
+            .build();
+        response = userClient.login(loginRequest);
+        if (response.statusCode() != 200) {
+            throw new IllegalArgumentException("InvoiceClient constructor failed when userClient login");
         }
     }
 
     public Response post(InvoicePostRequest request) {
+        return post(request, null);
+    }
+
+    public Response getAll(int pageNumber) {
+        return getAll(pageNumber, null);
+    }
+
+    public Response getInvoice() {
+        return getInvoice(0, null);
+    }
+
+    public Response search(String query, int pageNumber) {
+        return search(query, pageNumber, null);
+    }
+
+    public Response updateStatus(InvoiceStatusUpdateRequest request) {
+        return updateStatus(request, 0, null);
+    }
+
+    public Response update(InvoiceUpdateRequest request) {
+        return update(request, 0, null);
+    }
+
+
+    /******
+     *  P R O T E C T E D
+     ******/
+
+    protected Response post(InvoicePostRequest request, String token) {
+        String strToken = (token == null || token.isEmpty()) ? userClient.getBearerToken() : token;
+
         InvoicePostRequest withRequest = InvoicePostRequest.builder()
                 .user_id(request.user_id() == null ? userClient.getUserId() : request.user_id())
                 .billing_address(request.billing_address())
@@ -47,13 +73,16 @@ public class InvoiceClient extends BaseClient {
                 .payment_account_number(request.payment_account_number())
                 .total(request.total())
                 .invoicelines(
-                        request.invoicelines().stream().map(item ->
-                                        new InvoiceModel(item.product_id(), item.unit_price(), item.quantity())
-                                ).toList())
+                        (request.invoicelines() != null) ?
+                                request.invoicelines().stream().map(
+                                        item ->new InvoiceModel(item.product_id(), item.unit_price(), item.quantity())
+                                ).toList()
+                                : Collections.emptyList()
+                )
                 .build();
 
         Response response = given()
-                .header("Authorization", "Bearer " + userClient.getBearerToken())
+                .header("Authorization", "Bearer " + strToken)
                 .body(withRequest)
                 .when()
                 .post("/invoices");
@@ -79,18 +108,30 @@ public class InvoiceClient extends BaseClient {
         return response;
     }
 
-    public Response getAll(int pageNumber) {
+    protected Response getAll(int pageNumber, String token) {
+        String strToken = (token == null || token.isEmpty()) ? userClient.getBearerToken() : token;
         return given()
-                .header("Authorization", "Bearer " + userClient.getBearerToken())
+                .header("Authorization", "Bearer " + strToken)
                 .pathParam("pageNumber", pageNumber)
                 .when()
                 .get("/invoices?page={pageNumber}");
     }
 
-    public Response getInvoice() {
+    protected Response getInvoice(Integer id) {
+        return getInvoice(id, null);
+    }
+
+    protected Response getInvoice(String token) {
+        return getInvoice(0, token);
+    }
+
+    protected Response getInvoice(Integer id, String token) {
+        int theId = (id == null || id <= 0) ? invoiceId : id;
+        String strToken = (token == null || token.isEmpty()) ? userClient.getBearerToken() : token;
+
         Response response = given()
-                .header("Authorization", "Bearer " + userClient.getBearerToken())
-                .pathParam("invoiceId", invoiceId)
+                .header("Authorization", "Bearer " + strToken)
+                .pathParam("invoiceId", theId)
                 .when()
                 .get("/invoices/{invoiceId}");
 
@@ -102,19 +143,32 @@ public class InvoiceClient extends BaseClient {
         return response;
     }
 
-    public Response search(String query, int pageNumber) {
+    protected Response search(String query, int pageNumber, String token) {
+        String strToken = (token == null || token.isEmpty()) ? userClient.getBearerToken() : token;
+
         return given()
-                .header("Authorization", "Bearer " + userClient.getBearerToken())
+                .header("Authorization", "Bearer " + strToken)
                 .pathParam("query", query)
                 .pathParam("pageNumber", pageNumber)
                 .when()
                 .get("/invoices?q={query}&page={pageNumber}");
     }
 
-    public Response updateStatus(InvoiceStatusUpdateRequest request) {
+    protected Response updateStatus(InvoiceStatusUpdateRequest request, Integer id) {
+        return updateStatus(request, id, null);
+    }
+
+    protected Response updateStatus(InvoiceStatusUpdateRequest request, String token) {
+        return updateStatus(request, 0, token);
+    }
+
+    protected Response updateStatus(InvoiceStatusUpdateRequest request, Integer id, String token) {
+        int theId = (id == null || id <=0) ? invoiceId : id;
+        String strToken = (token == null || token.isEmpty()) ? userClient.getBearerToken() : token;
+
         Response response = given()
-                .header("Authorization", "Bearer " + userClient.getBearerToken())
-                .pathParam("invoiceId", invoiceId)
+                .header("Authorization", "Bearer " + strToken)
+                .pathParam("invoiceId", theId)
                 .body(request)
                 .when()
                 .put("/invoices/{invoiceId}/status");
@@ -127,10 +181,21 @@ public class InvoiceClient extends BaseClient {
         return response;
     }
 
-    public Response update(InvoiceUpdateRequest request) {
+
+    protected Response update(InvoiceUpdateRequest request, Integer id) {
+        return update(request, id, null);
+    }
+
+    protected Response update(InvoiceUpdateRequest request, String token) {
+        return update(request, 0, token);
+    }
+
+    protected Response update(InvoiceUpdateRequest request, Integer id, String token) {
+        int theId = (id == null || id <= 0) ? invoiceId : id;
+        String strToken = (token == null || token.isEmpty()) ? userClient.getBearerToken() : token;
         return given()
-                .header("Authorization", "Bearer " + userClient.getBearerToken())
-                .pathParam("invoiceId", invoiceId)
+                .header("Authorization", "Bearer " + strToken)
+                .pathParam("invoiceId", theId)
                 .body(request)
                 .when()
                 .put("/invoices/{invoiceId}");
@@ -138,7 +203,7 @@ public class InvoiceClient extends BaseClient {
 
 
     /******
-     P R I V A T E
+     *  P R I V A T E
      ******/
     private UserClient userClient = new UserClient();
     private String billing_address = "string: billing_address";

@@ -79,7 +79,7 @@ jobs:
         run: |
           cd tool-shop-api/target
           if [ -d "surefire-reports" ]; then
-            zip -r surefire-reports-${ env.TEST_ENV }.zip surefire-reports
+            zip -r surefire-reports-${TEST_ENV}.zip surefire-reports
           fi
 
       - name: Send Test Results Email

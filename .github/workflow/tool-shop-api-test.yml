@@ -1,0 +1,72 @@
+name: Tool Shop API Scheduled Tests
+
+on:
+  schedule:
+    # Runs Monday to Friday at 10:00 PM Chicago Time (CST/CDT) is 03:00 UTC (Standard) or 02:00 UTC (Daylight Saving).
+    - cron: '0 3 * * 1-5'
+
+  # Allows manual triggering for debugging/on-demand runs
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Environment'
+        required: true
+        default: 'DIT'
+        type: choice
+        options:
+          - DIT
+          - SIT
+          - UAT
+          - PLT
+          - PRD
+
+jobs:
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.set-env.outputs.env_name }}
+    steps:
+      - name: Determine Environment based on Day of Week
+        id: set-env
+        run: |
+          # If triggered manually, use the input. If scheduled, map day of week.
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "env_name=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            # Get current day of week (1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri)
+            DAY_OF_WEEK=$(date +%u)
+            case $DAY_OF_WEEK in
+              1) echo "env_name=DIT" >> $GITHUB_OUTPUT ;;  # Monday
+              2) echo "env_name=SIT" >> $GITHUB_OUTPUT ;;  # Tuesday
+              3) echo "env_name=UAT" >> $GITHUB_OUTPUT ;;  # Wednesday
+              4) echo "env_name=PLT" >> $GITHUB_OUTPUT ;;  # Thursday
+              5) echo "env_name=PRD" >> $GITHUB_OUTPUT ;;  # Friday
+              *) echo "env_name=DIT" >> $GITHUB_OUTPUT ;;
+            esac
+          fi
+
+  run-tests:
+    needs: determine-environment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 26
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '26'
+          cache: 'maven'
+
+      - name: Run Maven Tests for tool-shop-api
+        env:
+          TEST_ENV: ${{ needs.determine-environment.outputs.env_name }}
+        run: |
+          echo "=================================================="
+          echo "Running tool-shop-api tests for environment: $TEST_ENV"
+          echo "=================================================="
+          
+          # Execute Maven command targeting specifically the tool-shop-api module
+          mvn test -pl tool-shop-api -Denv=$TEST_ENV

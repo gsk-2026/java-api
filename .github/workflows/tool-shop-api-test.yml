@@ -63,6 +63,7 @@ jobs:
       - name: Run Maven Tests for tool-shop-api
         env:
           TEST_ENV: ${{ needs.determine-environment.outputs.env_name }}
+        working-directory: ./tool-shop-api
         run: |
           echo "=================================================="
           echo "Running tool-shop-api tests for environment: $TEST_ENV"

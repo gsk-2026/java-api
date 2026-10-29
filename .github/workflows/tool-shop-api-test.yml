@@ -88,11 +88,11 @@ jobs:
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
           server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
+          username: ${{ secrets.SMTP_USERNAME  }}
+          password: ${{ secrets.SMTP_PASSWORD}}
           subject: "Test Results [Environment: ${{ needs.determine-environment.outputs.env_name }}] - Tool Shop API"
-          to: ${{ secrets.MAIL_TO }}
-          from: GitHub Actions <${{ secrets.MAIL_USERNAME }}>
+          to: ${{ secrets.SMTP_RECEIVERS }}
+          from: GitHub Actions <${{ secrets.SMTP_USERNAME }}>
           body: |
             Hi Team,
             

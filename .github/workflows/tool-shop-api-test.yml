@@ -72,14 +72,16 @@ jobs:
           echo "=================================================="
           
           # Execute Maven command targeting specifically the tool-shop-api module
-          mvn clean verify -Denv=$TEST_ENV
+          mvn clean test -Denv=$TEST_ENV
 
       - name: Zip Test Reports (Optional Attachment)
         if: always()
+        env:
+          TEST_ENV: ${{ needs.determine-environment.outputs.env_name }}
         run: |
           cd tool-shop-api/target
           if [ -d "surefire-reports" ]; then
-            zip -r surefire-reports.zip surefire-reports
+            zip -r tool-shop-api_${TEST_ENV}_surefire-reports.zip surefire-reports
           fi
 
       - name: Send Test Results Email
@@ -102,5 +104,5 @@ jobs:
             - Workflow Run URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
             Please check the attached surefire reports for full stack traces or test outcomes.
-          attachments: tool-shop-api/target/surefire-reports.zip
+          attachments: tool-shop-api/target/tool-shop-api_${{ needs.determine-environment.outputs.env_name }}_surefire-reports.zip
           ignore_cert: true

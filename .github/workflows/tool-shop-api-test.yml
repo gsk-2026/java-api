@@ -70,4 +70,4 @@ jobs:
           echo "=================================================="
           
           # Execute Maven command targeting specifically the tool-shop-api module
-          mvn test -pl tool-shop-api -Denv=$TEST_ENV
+          mvn test -Denv=$TEST_ENV

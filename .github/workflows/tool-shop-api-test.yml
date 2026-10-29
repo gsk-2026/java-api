@@ -79,7 +79,7 @@ jobs:
         run: |
           cd tool-shop-api/target
           if [ -d "surefire-reports" ]; then
-            zip -r tool-shop-api_surefire-reports_${{ env.TEST_ENV }}.zip surefire-reports
+            zip -r surefire-reports-${ env.TEST_ENV }.zip surefire-reports
           fi
 
       - name: Send Test Results Email
@@ -102,5 +102,5 @@ jobs:
             - Workflow Run URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
             Please check the attached surefire reports for full stack traces or test outcomes.
-          attachments: tool-shop-api/target/tool-shop-api_surefire-reports_${{ env.TEST_ENV }}.zip
+          attachments: tool-shop-api/target/surefire-reports-${{ env.TEST_ENV }}.zip
           ignore_cert: true

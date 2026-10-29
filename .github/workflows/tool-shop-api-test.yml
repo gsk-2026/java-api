@@ -72,7 +72,7 @@ jobs:
           echo "=================================================="
           
           # Execute Maven command targeting specifically the tool-shop-api module
-          mvn clean test -Denv=$TEST_ENV
+          mvn clean verify -Denv=$TEST_ENV
 
       - name: Zip Test Reports (Optional Attachment)
         if: always()

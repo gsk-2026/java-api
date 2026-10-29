@@ -61,13 +61,46 @@ jobs:
           cache: 'maven'
 
       - name: Run Maven Tests for tool-shop-api
+        id: maven-test
         env:
           TEST_ENV: ${{ needs.determine-environment.outputs.env_name }}
         working-directory: ./tool-shop-api
+        continue-on-error: true
         run: |
           echo "=================================================="
           echo "Running tool-shop-api tests for environment: $TEST_ENV"
           echo "=================================================="
           
           # Execute Maven command targeting specifically the tool-shop-api module
-          mvn test -Denv=$TEST_ENV
+          mvn clean test -Denv=$TEST_ENV
+
+      - name: Zip Test Reports (Optional Attachment)
+        if: always()
+        run: |
+          cd tool-shop-api/target
+          if [ -d "surefire-reports" ]; then
+            zip -r tool-shop-api_surefire-reports_${{ env.TEST_ENV }}.zip surefire-reports
+          fi
+
+      - name: Send Test Results Email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Test Results [Environment: ${{ needs.determine-environment.outputs.env_name }}] - Tool Shop API"
+          to: ${{ secrets.MAIL_TO }}
+          from: GitHub Actions <${{ secrets.MAIL_USERNAME }}>
+          body: |
+            Hi Team,
+            
+            Scheduled API tests for 'tool-shop-api' have finished executing.
+            
+            - Environment: ${{ needs.determine-environment.outputs.env_name }}
+            - Workflow Run URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            Please check the attached surefire reports for full stack traces or test outcomes.
+          attachments: tool-shop-api/target/tool-shop-api_surefire-reports_${{ env.TEST_ENV }}.zip
+          ignore_cert: true

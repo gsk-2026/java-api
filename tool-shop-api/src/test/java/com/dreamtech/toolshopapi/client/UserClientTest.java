@@ -1,6 +1,7 @@
 package com.dreamtech.toolshopapi.client;
 
 import com.dreamtech.toolshopapi.model.*;
+import com.dreamtech.toolshopapi.utils.TestStatusLogger;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.*;
 
@@ -14,8 +15,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.greaterThan;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 
+@ExtendWith(TestStatusLogger.class)
 public class UserClientTest {
 
     private static UserClient userClient;

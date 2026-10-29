@@ -1,10 +1,13 @@
 package com.dreamtech.toolshopapi.client;
 
 import com.dreamtech.toolshopapi.model.*;
+import com.dreamtech.toolshopapi.utils.TestStatusLogger;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -12,6 +15,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.empty;
 
 
+@ExtendWith(TestStatusLogger.class)
 public class InvoiceClientTest {
 
     private InvoiceClient invoiceClient;

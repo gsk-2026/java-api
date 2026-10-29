@@ -102,5 +102,5 @@ jobs:
             - Workflow Run URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
             Please check the attached surefire reports for full stack traces or test outcomes.
-          attachments: tool-shop-api/target/surefire-reports-${{ env.TEST_ENV }}.zip
+          attachments: tool-shop-api/target/surefire-reports-${{ needs.determine-environment.outputs.env_name }}.zip
           ignore_cert: true

@@ -20,7 +20,9 @@ java-api/ (Standalone Workspace Root)
 │
 ├── client-resource-access-api/        # [Active Microservice Project Module]
 │
-├── practice_softwaretesting_api/        # [Active Microservice Project Module]
+├── practice-softwaretesting-api/      # [Active Microservice Project Module]
+│
+├── tool-shop-api/                     # [Active Microservice Project Module]
 │
 ├── new-a-api/                         # [Future New A Standalone Microservice Folder Example]
 │
@@ -30,7 +32,7 @@ java-api/ (Standalone Workspace Root)
 ---
 
 
-## Required Installation Verification
+## Basic Installation Verification
 
 The following section provides general installation and verification instructions.  For detailed step-by-step procedures, please refer to the README.md file within each individual module.
 
@@ -71,11 +73,12 @@ sc query Jenkins                         # Jenkins could also be a docker contai
 
 ## Environmental Verification Matrix
 
-| Target Microservice            | API Base URLs                           | Framework Engine | Suite Status |
-|:-------------------------------|:----------------------------------------|:-----------------|:-------------|
-| `client_resource_access_api`   | github/.../client-resource-access-api   | Pytest & Locust  | 🟢 Active    |
-| `practice_softwaretesting_api` | https://v4.practicesoftwaretesting.com  | Pytest & Locust  | 🟢 Active    | 
-| `a_api` / `b_api`              | Scaled Business Testing Sub-systems     | Pytest           | 🟡 Planning  |
+| Target Microservice            | API Base URLs                                                 | Framework Engine | Suite Status |
+|:-------------------------------|:--------------------------------------------------------------|:-----------------|:-------------|
+| `client-resource-access-api`   | github/.../client-resource-access-api                         | mvn              | 🟢 Active    |
+| `practice-softwaretesting-api` | https://testsmith-io.github.io/practice-software-testing/#/   | mvn              | 🟢 Active    | 
+| `tool-shop-api`                | https://api-v4.practicesoftwaretesting.com/api/documentation  | mvn              | 🟢 Active    | 
+| `a_api` / `b_api`              | Scaled Business Testing Sub-systems                           | mvn              | 🟡 Planning  |
 
 
 ---
@@ -83,11 +86,7 @@ sc query Jenkins                         # Jenkins could also be a docker contai
 
 ##  CI/CD Automation Engine
 
-1. Integrate Jenkins with GitHub
-2. The root project incorporates a multi-tier Jenkinsfile configuration script
-3. The CI/CD pipeline executes all unit, integration, E2E, and performance tests.
-4. Every branch commit pushed to repository features will initiate the unit tests only.
-5. Every branch commit pushed to repository main will trigger integration, end-to-end, and performance tests.
-6. Jenkins pipeline can also be triggered manually from Jenkins (Build with Parameters)
+1. Implemented through GitHunb actions or Integrate Jenkins with GitHub
+2. For details please refer to the README.md file within each individual module.
 
 ---

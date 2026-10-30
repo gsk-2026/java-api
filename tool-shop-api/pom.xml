@@ -60,7 +60,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>26</release> <!-- Drop down to a stable LTS like 21, or match your installed JDK -->
+                    <release>26</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

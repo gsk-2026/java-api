@@ -64,6 +64,7 @@ jobs:
         id: maven-test
         env:
           TEST_ENV: ${{ needs.determine-environment.outputs.env_name }}
+        # Execute Maven command targeting specifically the tool-shop-api module
         working-directory: ./tool-shop-api
         continue-on-error: true
         run: |
@@ -71,7 +72,6 @@ jobs:
           echo "Running tool-shop-api tests for environment: $TEST_ENV"
           echo "=================================================="
           
-          # Execute Maven command targeting specifically the tool-shop-api module
           mvn clean test -Denv=$TEST_ENV
 
       - name: Zip Test Reports (Optional Attachment)

@@ -15,7 +15,7 @@ java-api/ (Standalone Workspace Root)
 ├── .gitignore                         # Local repository file tracking exclusions
 ├── pom.xml                            # Independent Maven configuration for java-api
 ├── Jenkinsfile                        # CI/CD orchestration pipeline definition 
-├── README.md                          # Main workspace documentation (This File)
+├── README.md                          # Main workspace documentation 
 │
 ├── client-resource-access-api/        # [Active Microservice Project Module]
 │   ├── .mvn/                          # Maven wrapper binaries and settings
@@ -30,6 +30,7 @@ java-api/ (Standalone Workspace Root)
 │   ├── Dockerfile                     # OCI Container construction instructions 
 │   ├── mvnw / mvnw.cmd                # Cross-platform Maven wrapper binaries
 │   ├── pom.xml                        # Inherits directly from spring-boot-starter-parent
+│   ├── README.md                      # Microservice documentation 
 │   │
 │   └── Local Automation Scripts:
 │       ├── build_clean_compile.bat    # Windows: Compiles source and processors

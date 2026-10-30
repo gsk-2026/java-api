@@ -73,12 +73,12 @@ sc query Jenkins                         # Jenkins could also be a docker contai
 
 ## Environmental Verification Matrix
 
-| Target Microservice            | API Base URLs                                                 | Framework Engine | Suite Status |
-|:-------------------------------|:--------------------------------------------------------------|:-----------------|:-------------|
-| `client-resource-access-api`   | github/.../client-resource-access-api                         | mvn              | 🟢 Active    |
-| `practice-softwaretesting-api` | https://testsmith-io.github.io/practice-software-testing/#/   | mvn              | 🟢 Active    | 
-| `tool-shop-api`                | https://api-v4.practicesoftwaretesting.com/api/documentation  | mvn              | 🟢 Active    | 
-| `a_api` / `b_api`              | Scaled Business Testing Sub-systems                           | mvn              | 🟡 Planning  |
+| Target Microservice            | API Base URLs                                               | Framework Engine | Suite Status |
+|:-------------------------------|:------------------------------------------------------------|:-----------------|:-------------|
+| `client-resource-access-api`   | github/.../client-resource-access-api                       | mvn              | 🟢 Active    |
+| `practice-softwaretesting-api` | https://testsmith-io.github.io/practice-software-testing/#/ | mvn              | 🟢 Active    | 
+| `tool-shop-api`                | https://v4.practicesoftwaretesting.com/#/                   | mvn              | 🟢 Active    | 
+| `a_api` / `b_api`              | Scaled Business Testing Sub-systems                         | mvn              | 🟡 Planning  |
 
 
 ---

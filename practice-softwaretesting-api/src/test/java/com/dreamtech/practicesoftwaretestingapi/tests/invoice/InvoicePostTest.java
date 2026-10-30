@@ -110,7 +110,7 @@ public class InvoicePostTest extends InvoiceBaseTest {
                 .body("total", equalTo(0))
                 .body("invoice_date", notNullValue(String.class))
                 .body("invoice_number", notNullValue(String.class))
-                .body("id", notNullValue(Integer.class));;
+                .body("id", notNullValue(Integer.class));
     }
 
     @Test

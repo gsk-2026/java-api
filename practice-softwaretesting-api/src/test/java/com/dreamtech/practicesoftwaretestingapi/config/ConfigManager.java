@@ -13,7 +13,7 @@ public final class ConfigManager {
 
     static {
         String env = System.getProperty("env", "dit");
-        String resource = "application." + env + ".properties";
+        String resource = "application." + env.toLowerCase() + ".properties";
 
         try (InputStream input = ConfigManager.class
                 .getClassLoader()
